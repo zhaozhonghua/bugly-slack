@@ -18,5 +18,5 @@ if __name__ == '__main__':
     except ImportError:
         from wsgiref.simple_server import make_server
 
-    server = make_server('', 8000, application)
+    server = make_server('', 9000, application)
     server.serve_forever()
