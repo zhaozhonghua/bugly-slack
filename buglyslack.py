@@ -15,45 +15,6 @@ BUGLY_ICON = (
     'http://image.i.haierzhongyou.com/dz/bugly/123.png'
 )
 
-MESSAGES = {
-    'created': u'创建了',
-    'updated': u'更新了',
-    'deleted': u'删除了',
-    'commented': u'评论了',
-
-    'archived': u'归档了',
-    'unarchived': u'激活了',
-
-    'started': u'开始处理',
-    'paused': u'暂停处理',
-    'reopen': u'重新打开了',
-    'completed': u'完成了',
-    'deadline_changed': u'更新截止时间',
-
-    'sticked': u'置顶了',
-    'unsticked': u'取消置顶',
-
-    'recovered': u'恢复了',
-
-    # special
-    'assigned': u'指派',
-    'unassigned': u'取消指派',
-
-    'documents': u'文档',
-    'topics': u'讨论',
-    'todos': u'任务',
-    'todolists': u'任务清单',
-    'attachments': u'文件',
-}
-
-COLORS = {
-    'created': '#439FE0',
-    'updated': 'warning',
-    'completed': 'good',
-    'deleted': 'danger',
-}
-
-
 class BuglySlack(object):
     def __init__(self, name='Bugly', icon=BUGLY_ICON, timeout=2):
         self.name = name
@@ -97,7 +58,7 @@ class BuglySlack(object):
 
         text = u'%s %s%s <%s|%s>' % (
             happenDate,
-            '发生异常类型:', event_type,
+            u'发生异常类型:', event_type,
             appUrl, appId,
         )
 
@@ -111,17 +72,17 @@ class BuglySlack(object):
         if req.method != 'POST':
             return redirect_homepage(start_response)
 
-        event = req.headers.get('X-Tower-Event')
-        if not event:
-            return bad_request(start_response)
+        # event = req.headers.get('X-Tower-Event')
+        # if not event:
+        #     return bad_request(start_response)
 
-        signature = req.headers.get('X-Tower-Signature')
-        if signature and signature[0] not in ('@', '#'):
-            signature = None
+        # signature = req.headers.get('X-Tower-Signature')
+        # if signature and signature[0] not in ('@', '#'):
+        #     signature = None
 
-        payload = self.create_payload(json.load(req.stream), event)
+        payload = self.create_payload(json.load(req.stream), None)
         url = 'https://hooks.slack.com/services/%s' % (req.path.lstrip('/'))
-        self.send_payload(payload, url, signature)
+        self.send_payload(payload, url, "#software")
         return response(start_response)
 
 
