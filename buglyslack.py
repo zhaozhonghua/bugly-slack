@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import json
+
 import requests
 from werkzeug.wrappers import BaseRequest
 
@@ -9,13 +10,20 @@ try:
 except ImportError:
     gevent = None
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(levelname)s lineno:%(lineno)d %(message)s")
+logger = logging.getLogger('bugly.slack')
+
 HOMEPAGE = 'http://apidoc.haierzhongyou.com/'
 
 BUGLY_ICON = (
-    'http://image.i.haierzhongyou.com/dz/bugly/123.png'
+    'http://image.i.haierzhongyou.com/'
+    'dz/bugly/bugly.jpeg'
 )
 
 class BuglySlack(object):
+
     def __init__(self, name='Bugly', icon=BUGLY_ICON, timeout=2):
         self.name = name
         self.icon = icon
@@ -41,7 +49,9 @@ class BuglySlack(object):
             http_post(url, **kwargs)
 
     @staticmethod
-    def create_payload(body, event):
+    def create_payload(body):
+
+        logger.debug(body)
 
         event_content = body["eventContent"]
         event_type = body["eventType"]
@@ -54,12 +64,12 @@ class BuglySlack(object):
         attachment = {}
 
         attachment['author_name'] = appName
-        attachment['author_link'] = 'https://bugly.qq.com/v2/analytics/dashboard/4390f8350d?pid=1'
+        attachment['author_link'] = 'https://bugly.qq.com/v2/analytics/dashboard/{}?pid=1'.format(appId)
 
         text = u'%s %s%s <%s|%s>' % (
             happenDate,
-            u'发生异常类型:', event_type,
-            appUrl, appId,
+            u'每日Crash统计，事件类型:', event_type,
+            appUrl, u'appid:{}'.format(appId),
         )
 
         attachment['text'] = text
@@ -72,15 +82,9 @@ class BuglySlack(object):
         if req.method != 'POST':
             return redirect_homepage(start_response)
 
-        # event = req.headers.get('X-Tower-Event')
-        # if not event:
-        #     return bad_request(start_response)
+        logger.debug(req.headers)
 
-        # signature = req.headers.get('X-Tower-Signature')
-        # if signature and signature[0] not in ('@', '#'):
-        #     signature = None
-
-        payload = self.create_payload(json.load(req.stream), None)
+        payload = self.create_payload(json.load(req.stream))
         url = 'https://hooks.slack.com/services/%s' % (req.path.lstrip('/'))
         self.send_payload(payload, url, "#software")
         return response(start_response)
